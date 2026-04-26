@@ -302,7 +302,7 @@ python assistant_ui.py
 
 | Resource | URL |
 |----------|-----|
-| 🤗 HuggingFace Space | [finsense-rl](#) |
+| 🤗 HuggingFace Space | [finsense_scaler_finale](https://huggingface.co/spaces/jaganparab02/finsense_scaler_finale) |
 | 📓 Training Colab | [FINSENSE_TRAINING_FILE.ipynb](https://github.com/JaganParab02/MODEL_TRAINING_FINSENSE/blob/main/FINSENSE_TRAINING_FILE.ipynb) |
 | 📝 This Blog | [BLOG.md](BLOG.md) |
 | 📊 Evaluation Plots | See above |

@@ -9,6 +9,12 @@ pinned: false
 
 # FinSense RL Environment
 
+🏆 **Hackathon Links**
+- 🤗 **Hugging Face Space:** [finsense_scaler_finale](https://huggingface.co/spaces/jaganparab02/finsense_scaler_finale)
+- 📝 **Project Blog:** [BLOG.md](BLOG.md)
+- 📓 **Training Colab:** [FINSENSE_TRAINING_FILE.ipynb](https://github.com/JaganParab02/MODEL_TRAINING_FINSENSE/blob/main/FINSENSE_TRAINING_FILE.ipynb)
+
+
 FinSense is a goal-driven financial decision-making RL environment simulating Indian household budgeting. Given a savings goal (e.g., buying a phone worth Rs.20,000), a monthly salary, and unpredictable daily expenses, an AI agent learns to decide which expenses to **allow**, **reduce**, or **avoid** -- balancing stress, risk, and deadlines to hit the target in time.
 
 Unlike toy environments, FinSense models a task that millions of Indians face every month: a fixed salary, unpredictable expenses, and a savings goal that keeps slipping. The environment captures delayed consequences, income shocks, trade-offs, and temporal pressure.

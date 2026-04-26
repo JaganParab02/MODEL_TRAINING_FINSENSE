@@ -193,7 +193,7 @@ The SFT model trains live against `FinSenseEnv`, using `grade_episode()` as the 
 
 ### Plot 1: Memory vs. No Memory — Task: MEDIUM
 
-![FinSense RL Learning Evaluation — Task: MEDIUM](eval_medium_learning.png)
+![FinSense RL Learning Evaluation — Task: MEDIUM](evaluation/finsense_memory_progression_medium.png)
 
 *4-panel comparison across 10 episodes. **Top-left**: With Memory (green) consistently achieves higher total reward than Without Memory (red). **Bottom-right (Cumulative Reward)**: the green area stays clearly above red throughout — the memory-augmented agent accumulates less negative reward over time, confirming systematic improvement.*
 

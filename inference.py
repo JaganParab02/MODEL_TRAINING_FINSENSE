@@ -11,7 +11,7 @@ MANDATORY
 
 - Defaults are set only for API_BASE_URL and MODEL_NAME 
     (and should reflect your active inference setup):
-    API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:11434/v1/")
+    API_BASE_URL = os.getenv("API_BASE_URL", "https://api-inference.huggingface.co/v1/")
     MODEL_NAME = os.getenv("MODEL_NAME", "mistral:latest")
     
 - The inference script must be named `inference.py` and placed in the root directory of the project
@@ -62,8 +62,8 @@ from inference_local import rule_based_agent
 def load_config():
     """Load all configuration from environment variables."""
     return {
-        "HF_TOKEN": os.getenv("HF_TOKEN", "ollama"),
-        "API_BASE_URL": os.getenv("API_BASE_URL", "http://localhost:11434/v1/"),
+        "HF_TOKEN": os.getenv("HF_TOKEN", ""),
+        "API_BASE_URL": os.getenv("API_BASE_URL", "https://api-inference.huggingface.co/v1/"),
         "MODEL_NAME": os.getenv("MODEL_NAME", "mistral"),
         "USE_MEMORY": os.getenv("USE_MEMORY", "1") == "1",
         "USE_ASSISTANT": os.getenv("USE_ASSISTANT", "1") == "1",

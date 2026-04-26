@@ -18,8 +18,8 @@ load_dotenv()
 def _get_client():
     """Create OpenAI client from environment config."""
     return OpenAI(
-        base_url=os.getenv("API_BASE_URL", "http://localhost:11434/v1/"),
-        api_key=os.getenv("HF_TOKEN", "ollama")
+        base_url=os.getenv("API_BASE_URL", "https://api-inference.huggingface.co/v1/"),
+        api_key=os.getenv("HF_TOKEN", "")
     )
 
 

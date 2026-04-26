@@ -276,8 +276,8 @@ def run_benchmark(models: List[str], task_id: str = "hard", episodes: int = 5,
     """
     from openai import OpenAI
 
-    api_base_url = api_base_url or os.getenv("API_BASE_URL", "http://localhost:11434/v1/")
-    hf_token = hf_token or os.getenv("HF_TOKEN", "ollama")
+    api_base_url = api_base_url or os.getenv("API_BASE_URL", "https://api-inference.huggingface.co/v1/")
+    hf_token = hf_token or os.getenv("HF_TOKEN", "")
 
     results = {}
 

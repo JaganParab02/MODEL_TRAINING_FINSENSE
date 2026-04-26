@@ -772,9 +772,9 @@ python training/train_grpo.py --model Qwen/Qwen2.5-0.5B-Instruct
 
 ```bash
 # Set environment variables
-export API_BASE_URL="http://localhost:11434/v1/"
-export MODEL_NAME="mistral:latest"
-export HF_TOKEN="your-token"
+export API_BASE_URL="https://api-inference.huggingface.co/v1/"
+export MODEL_NAME="Qwen/Qwen2.5-7B-Instruct"
+export HF_TOKEN="your-hf-token"
 
 # Run inference (auto-falls back to rule-based if LLM is unavailable)
 python inference.py
@@ -894,9 +894,9 @@ numpy
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `API_BASE_URL` | `http://localhost:11434/v1/` | LLM API endpoint |
-| `MODEL_NAME` | `""` | Model identifier (empty = use rule-based fallback) |
-| `HF_TOKEN` | `"ollama"` | HuggingFace / API key |
+| `API_BASE_URL` | `https://api-inference.huggingface.co/v1/` | LLM API endpoint |
+| `MODEL_NAME` | `Qwen/Qwen2.5-7B-Instruct` | Model identifier |
+| `HF_TOKEN` | `""` | HuggingFace / API key |
 | `USE_MEMORY` | `"1"` | Enable memory system (`1`=on, `0`=off) |
 | `USE_ASSISTANT` | `"1"` | Enable assistant layer (`1`=on, `0`=off) |
 | `FORCE_RULE_BASED` | `"0"` | Skip LLM entirely, use only rules+memory (`1`=on) |
@@ -1035,7 +1035,7 @@ Because structured-output reliability varies across LLMs, the system uses:
 - **Safety selector** — validates LLM output against budget, context, and necessity rules
 - **Strict JSON parsing** — markdown stripping, repair attempts, graceful fallback
 
-This ensures robustness even when switching between local models (Ollama), Groq-hosted models, or Hugging Face Inference Providers.
+This ensures robustness even when switching between Groq-hosted models, or Hugging Face Inference Providers.
 
 ### Decision Pipeline
 

@@ -467,7 +467,7 @@ def dependency_check() -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the full FinSense Colab SFT demo.")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Base model used for SFT and eval.")
-    parser.add_argument("--data", default="warmstart_data.jsonl", help="Warm-start dataset path.")
+    parser.add_argument("--data", default=os.path.join(os.path.dirname(__file__), "warmstart_data.jsonl"), help="Warm-start dataset path.")
     parser.add_argument("--output-dir", default="./checkpoints/sft-warmstart", help="LoRA adapter output directory.")
     parser.add_argument("--artifact-dir", default=".", help="Where to save judge JSON artifacts.")
     parser.add_argument("--epochs", type=float, default=3.0, help="Number of SFT epochs.")

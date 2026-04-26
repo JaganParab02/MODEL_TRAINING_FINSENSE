@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -118,7 +119,7 @@ def build_sft_config(
 
 def train_sft(
     model_name: str = DEFAULT_MODEL,
-    data_path: str = "warmstart_data.jsonl",
+    data_path: str = os.path.join(os.path.dirname(__file__), "warmstart_data.jsonl"),
     output_dir: str = DEFAULT_OUTPUT_DIR,
     epochs: float = 3.0,
     batch_size: int = 2,
@@ -209,7 +210,7 @@ def train_sft(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train a LoRA SFT warm-start for FinSense.")
     parser.add_argument("--model", default=DEFAULT_MODEL, help="Base model name.")
-    parser.add_argument("--data", default="warmstart_data.jsonl", help="Path to JSONL training data.")
+    parser.add_argument("--data", default=os.path.join(os.path.dirname(__file__), "warmstart_data.jsonl"), help="Path to JSONL training data.")
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR, help="Directory for the adapter.")
     parser.add_argument("--epochs", type=float, default=3.0, help="Number of training epochs.")
     parser.add_argument("--batch-size", type=int, default=2, help="Per-device batch size.")

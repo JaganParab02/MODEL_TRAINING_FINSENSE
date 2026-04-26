@@ -100,12 +100,7 @@ def get_tasks():
     return list(TASKS.keys())
 
 
-from fastapi.responses import RedirectResponse
 
-
-@app.get("/")
-def root():
-    return RedirectResponse(url="/docs")
 
 
 @app.get("/health")

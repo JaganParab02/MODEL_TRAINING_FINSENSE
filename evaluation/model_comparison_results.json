@@ -1,0 +1,38 @@
+[
+  {
+    "model": "Base (Rule-Based)",
+    "score": 0.99,
+    "bad_decisions": 0,
+    "process_metrics": {
+      "protected_essential_count": 18,
+      "discretionary_avoids": 19,
+      "overspend_prevented": 24,
+      "emergency_safe_actions": 3,
+      "invalid_action_fallbacks": 0
+    }
+  },
+  {
+    "model": "SFT Warm-Start",
+    "score": 0.99,
+    "bad_decisions": 0,
+    "process_metrics": {
+      "protected_essential_count": 18,
+      "discretionary_avoids": 19,
+      "overspend_prevented": 24,
+      "emergency_safe_actions": 0,
+      "invalid_action_fallbacks": 0
+    }
+  },
+  {
+    "model": "GRPO Trained",
+    "score": 0.99,
+    "bad_decisions": 0,
+    "process_metrics": {
+      "protected_essential_count": 18,
+      "discretionary_avoids": 19,
+      "overspend_prevented": 25,
+      "emergency_safe_actions": 2,
+      "invalid_action_fallbacks": 0
+    }
+  }
+]

@@ -36,6 +36,16 @@ class FinSenseEnv:
 
         # Step-level tracking for bad decision analysis
         self.step_log = []
+        self.step_count = 0
+        self.max_steps_per_episode = 200
+
+        self.process_metrics = {
+            "protected_essential_count": 0,
+            "discretionary_avoids": 0,
+            "overspend_prevented": 0,
+            "emergency_safe_actions": 0,
+            "invalid_action_fallbacks": 0
+        }
 
     def reset(self, task_id: str = "easy", seed: int = 42) -> Dict[str, Any]:
         if task_id not in TASKS:
@@ -65,6 +75,15 @@ class FinSenseEnv:
         self.daily_spend_total = 0.0
         self.pending_consequences = []
         self.step_log = []
+        self.step_count = 0
+        self.process_metrics = {
+            "protected_essential_count": 0,
+            "discretionary_avoids": 0,
+            "overspend_prevented": 0,
+            "emergency_safe_actions": 0,
+            "invalid_action_fallbacks": 0
+        }
+        self.step_count = 0
         self.episode_memory_buffer = []
 
         # Reset agents with total_days for percentage-based event windows
@@ -122,6 +141,10 @@ class FinSenseEnv:
         return obs
 
     def step(self, action: ActionModel) -> Tuple[Dict[str, Any], float, bool, Dict[str, Any]]:
+        self.step_count += 1
+        if self.step_count >= self.max_steps_per_episode:
+            return self._get_observation(), -50.0, True, {"error": "max_steps_exceeded"}
+
         if self.state["days_left"] <= 0:
             return self._get_observation(), 0.0, True, {"error": "Environment is already done."}
 
@@ -129,6 +152,14 @@ class FinSenseEnv:
         spend = 0.0
         necessity = "none"
         context = "normal"
+
+        # Anti-Reward-Hacking Safeguards
+        decision = action.decision
+        approved_amount = max(0.0, action.approved_amount)  # bounds on approved_amount
+        
+        if decision not in ["allow", "reduce", "avoid"]:
+            decision = "avoid"  # invalid action fallback
+            self.process_metrics["invalid_action_fallbacks"] += 1
 
         # Capture current expense BEFORE any day-end processing
         current_expense_snapshot = None
@@ -139,11 +170,11 @@ class FinSenseEnv:
             necessity = current_expense.necessity_tag
             context = current_expense.context
 
-            if action.decision == "allow":
+            if decision == "allow":
                 spend = current_expense.amount
-            elif action.decision == "reduce":
-                spend = min(action.approved_amount, current_expense.amount)
-            elif action.decision == "avoid":
+            elif decision == "reduce":
+                spend = min(approved_amount, current_expense.amount)
+            elif decision == "avoid":
                 spend = 0.0
 
             # Never spend more than available balance
@@ -152,14 +183,25 @@ class FinSenseEnv:
             self.state["balance"] -= spend
             self.daily_spend_total += spend
 
-            # Stress update
-            if action.decision == "avoid":
-                if necessity == "essential":
-                    self.state["stress_level"] += 0.3
-                elif necessity == "semi-essential":
-                    self.state["stress_level"] += 0.1
-            elif action.decision == "allow" and necessity == "discretionary":
-                pass
+            # Stress update & Metrics tracking
+            if necessity == "essential":
+                # Stress increases proportionally to how much of the essential expense was NOT paid
+                unpaid_ratio = max(0.0, 1.0 - (spend / current_expense.amount))
+                self.state["stress_level"] += 0.3 * unpaid_ratio
+                if unpaid_ratio < 0.5:
+                    self.process_metrics["protected_essential_count"] += 1
+            elif necessity == "semi-essential":
+                unpaid_ratio = max(0.0, 1.0 - (spend / current_expense.amount))
+                self.state["stress_level"] += 0.1 * unpaid_ratio
+            elif necessity == "discretionary":
+                if decision == "avoid":
+                    self.process_metrics["discretionary_avoids"] += 1
+                    
+            if decision in ["reduce", "avoid"] and current_expense.amount > self.state.get("daily_allowance", 0):
+                self.process_metrics["overspend_prevented"] += 1
+                
+            if context == "emergency" and decision in ["allow", "reduce"]:
+                self.process_metrics["emergency_safe_actions"] += 1
 
             # =============================================================
             # CONTEXT-BASED PENALTIES (scaled to be meaningful)
@@ -167,18 +209,18 @@ class FinSenseEnv:
             context_penalty = 0.0
 
             # Emergency context: avoiding is dangerous — significant penalty
-            if context == "emergency" and action.decision == "avoid":
+            if context == "emergency" and decision == "avoid":
                 context_penalty = -10.0  # Scaled to matter in [-100, 100] range
 
             # Weekend context: allowing DISCRETIONARY spending is wasteful
             # Only penalize discretionary, not essential/semi-essential
-            if context == "weekend" and action.decision == "allow" and necessity == "discretionary":
+            if context == "weekend" and decision == "allow" and necessity == "discretionary":
                 context_penalty = -5.0  # Moderate penalty for weekend lifestyle spending
 
             # =============================================================
             # DELAYED CONSEQUENCE: Avoiding essential medical care
             # =============================================================
-            if (action.decision == "avoid"
+            if (decision == "avoid"
                     and necessity == "essential"
                     and current_expense.category == "medical"):
                 if self.expense_gen.rng.random() < 0.5:
@@ -196,15 +238,16 @@ class FinSenseEnv:
                                 "health emergency scheduled in 3 days")
 
             # Track bad decisions for evaluation
+            # Only flag genuinely harmful decisions (not just technical threshold violations)
             bad_decision = None
-            if action.decision == "allow" and necessity == "discretionary":
-                # Only flag truly excessive discretionary spending
-                if spend > self.daily_allowance * 0.5:
-                    bad_decision = "allowed_discretionary_unnecessarily"
-            elif action.decision == "avoid" and necessity == "essential":
+            if decision == "allow" and necessity == "discretionary":
+                # Flag only if spend is both non-trivial (>Rs.500) AND exceeds daily allowance
+                if spend > 500 and spend > self.daily_allowance:
+                    bad_decision = "overspent_allowance_discretionary"
+            elif decision == "avoid" and necessity == "essential":
                 bad_decision = "avoided_essential"
-            elif action.decision == "avoid" and context == "emergency" and necessity in ("essential", "semi-essential"):
-                bad_decision = "avoided_emergency_context"
+            elif decision == "avoid" and context == "emergency" and necessity in ("essential", "semi-essential"):
+                bad_decision = "avoided_emergency"
 
             self.step_log.append({
                 "day": self.current_day,
@@ -212,7 +255,7 @@ class FinSenseEnv:
                 "category": current_expense.category,
                 "necessity": necessity,
                 "context": context,
-                "action": action.decision,
+                "action": decision,
                 "amount": spend,
                 "bad_decision": bad_decision,
             })
@@ -238,13 +281,20 @@ class FinSenseEnv:
         # Per-step reward: penalize stress and risk
         stress_penalty = 0.4 * self.state["stress_level"]
         risk_penalty = {"low": 0.0, "medium": 0.1, "high": 0.3}[self.state["risk_level"]]
-        reward = -stress_penalty - risk_penalty + context_penalty
+        
+        # Independent reward function: Overspend Penalty
+        # Protects against reward hacking where model spends everything early
+        overspend_penalty = 0.0
+        if spend > self.daily_allowance:
+            overspend_penalty = (spend - self.daily_allowance) * 0.05
+            
+        reward = -stress_penalty - risk_penalty + context_penalty - overspend_penalty
 
         # Print expense line
         if self.expense_idx < len(self.daily_expenses):
             exp = self.daily_expenses[self.expense_idx]
             ctx_str = f" [{context}]" if context != "normal" else ""
-            print(f"    [EXPENSE] {exp.name:20s} | {action.decision:6s} | "
+            print(f"    [EXPENSE] {exp.name:20s} | {decision:6s} | "
                   f"spend={spend:>7.0f} | bal={self.state['balance']:>8.0f}{ctx_str}")
 
         self.expense_idx += 1
@@ -261,10 +311,7 @@ class FinSenseEnv:
             # Reward for goal progress (scaled)
             reward += goal_progress * 0.01
 
-            # Bonus if goal is fully achieved
-            if self.state["goal_remaining"] <= 0:
-                reward += 50.0
-
+            # Removed the duplicate reward += 50.0 here since it's handled in the `if done:` block below.
             print(f"  [DAY END] day {self.state['days_left']:>2d} | "
                   f"spent={self.daily_spend_total:>7.0f} | allowance={self.daily_allowance:>7.0f} | "
                   f"saved={actual_savings:>7.0f} | goal_left={self.state['goal_remaining']:>8.0f} | "
@@ -292,6 +339,9 @@ class FinSenseEnv:
             self.expense_idx = 0
             self.daily_spend_total = 0.0
             self.state["days_left"] -= 1
+            
+            # Natural stress decay overnight
+            self.state["stress_level"] = max(0.0, self.state["stress_level"] - 0.05)
 
             # Recompute allowance for the new day
             self._recompute_daily_allowance()
@@ -370,11 +420,9 @@ class FinSenseEnv:
             if self.state["stress_level"] > 0.7:
                 reward -= 20.0
 
-        # Normalize reward from an expected range of roughly [-100, 100] to strictly [0.01, 0.99]
+        # Normalize reward from an expected range of roughly [-100, 100] to [-1.0, 1.0] for RL stability
         reward = max(-100.0, min(100.0, float(reward)))
-        normalized_reward = (reward + 100.0) / 200.0
-        score_bounded = 0.01 + (normalized_reward * 0.98)
-        reward_final = max(0.01, min(0.99, score_bounded))
+        reward_final = reward / 100.0
 
         if current_expense_snapshot is not None:
             active_events = self.event_agent.get_active_events()
@@ -387,7 +435,7 @@ class FinSenseEnv:
                 print(f"\n[EVENT] {event_msg}")
                 print(f"[PRICE] {current_expense_snapshot.name}: Rs.{original_amount:.0f} -> Rs.{adjusted_amount:.0f} (x{multiplier:.2f})")
 
-            print(f"[DECISION] Day {self.current_day} | {current_expense_snapshot.name} | {current_expense_snapshot.context} | action={action.decision} | reward={reward_final:.2f}")
+            print(f"[DECISION] Day {self.current_day} | {current_expense_snapshot.name} | {current_expense_snapshot.context} | action={decision} | reward={reward_final:.2f}")
 
         # Store decision in buffer (not committed until end of episode)
         if current_expense_snapshot is not None:
@@ -410,7 +458,7 @@ class FinSenseEnv:
                 "price_multiplier": price_multiplier,
                 "balance": self.state["balance"],
                 "days_left": self.state["days_left"],
-                "action": action.decision,
+                "action": decision,
                 "reward_step": reward_final, # Initial step reward
                 "amount": spend
             })
@@ -458,7 +506,22 @@ class FinSenseEnv:
                     outcome=mem["outcome"],
                 )
 
-        return self._get_observation(), reward_final, done, {}
+        info = {
+            "reward_components": {
+                "stress_penalty": -stress_penalty if 'stress_penalty' in locals() else 0.0,
+                "risk_penalty": -risk_penalty if 'risk_penalty' in locals() else 0.0,
+                "context_penalty": context_penalty if 'context_penalty' in locals() else 0.0,
+                "overspend_penalty": -overspend_penalty if 'overspend_penalty' in locals() else 0.0,
+                "goal_progress": (goal_progress * 0.01) if 'goal_progress' in locals() else 0.0,
+                "completion_bonus": 50.0 if done and self.state["goal_remaining"] <= 0 else (-30.0 if done else 0.0),
+                "stress_failure_penalty": -20.0 if done and self.state["stress_level"] > 0.7 else 0.0
+            },
+            "metrics": self.process_metrics,
+            "bad_decision_count": self.get_bad_decision_count(),
+            "active_shocks": self.state.get("income_shock_active", False)
+        }
+
+        return self._get_observation(), reward_final, done, info
 
     def get_state(self) -> Dict[str, Any]:
         return self.state
@@ -470,3 +533,7 @@ class FinSenseEnv:
     def get_bad_decision_count(self) -> int:
         """Return count of bad decisions in this episode."""
         return len(self.get_bad_decisions())
+
+    def get_process_metrics(self) -> Dict[str, int]:
+        """Returns step-level process metrics for RL verification."""
+        return self.process_metrics

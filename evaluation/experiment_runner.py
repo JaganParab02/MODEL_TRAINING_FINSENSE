@@ -18,11 +18,18 @@ import random
 from typing import List, Dict, Any
 
 # Import directly — no subprocess parsing needed
+import sys, os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from inference_local import run_episode, rule_based_agent
 from finsense.memory import MemorySystem
 
 
-def run_experiment(num_episodes: int = 5, task_id: str = "easy", pretrain_episodes: int = None):
+def run_experiment(num_episodes: int = 5, task_id: str = "easy", pretrain_episodes: int = None, output_dir: str = None):
+    import datetime
+    import os
+    if output_dir is None:
+        output_dir = f"run_graphs_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    os.makedirs(output_dir, exist_ok=True)
     """Run experiment comparing episodes with/without memory."""
     print(f"\n{'='*70}")
     print(f"  FINSENSE RL LEARNING EVALUATION")
@@ -105,7 +112,7 @@ def run_experiment(num_episodes: int = 5, task_id: str = "easy", pretrain_episod
     analyze_results(results_without, results_with, num_episodes, task_id)
 
     # ===== GENERATE PLOTS =====
-    generate_plots(results_without, results_with, num_episodes, task_id)
+    generate_plots(results_without, results_with, num_episodes, task_id, output_dir)
 
     # Cleanup temp DBs
     for db_file in ["finsense_memory_no_mem.db", "finsense_memory_with_mem.db"]:
@@ -191,7 +198,7 @@ def analyze_results(results_without: List[Dict], results_with: List[Dict],
 
 
 def generate_plots(results_without: List[Dict], results_with: List[Dict],
-                   num_episodes: int, task_id: str):
+                   num_episodes: int, task_id: str, output_dir: str = None):
     """Generate comparison plots using matplotlib."""
     try:
         import matplotlib
@@ -279,7 +286,13 @@ def generate_plots(results_without: List[Dict], results_with: List[Dict],
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     plot_filename = f"finsense_learning_evaluation_{task_id}.png"
-    plt.savefig(plot_filename, dpi=150, bbox_inches='tight')
+    if output_dir:
+        import shutil, os
+        out_path = os.path.join(output_dir, plot_filename)
+        plt.savefig(out_path, dpi=150, bbox_inches='tight')
+        shutil.copy(out_path, plot_filename)
+    else:
+        plt.savefig(plot_filename, dpi=150, bbox_inches='tight')
     plt.close()
 
     print(f"\n  [PLOT] Plot saved to: {plot_filename}")
@@ -290,10 +303,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run FinSense RL learning evaluation')
     parser.add_argument('--episodes', type=int, default=5, help='Number of episodes per phase')
     parser.add_argument('--task', type=str, default='easy',
-                        choices=['easy', 'medium', 'hard'],
+                        choices=['easy', 'medium', 'hard', 'all'],
                         help='Task difficulty')
     parser.add_argument('--pretrain', type=int, default=None,
                         help='Override number of pre-training episodes')
 
     args = parser.parse_args()
-    run_experiment(args.episodes, args.task, pretrain_episodes=args.pretrain)
+    import datetime
+    output_dir = f"run_graphs_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    tasks = ['easy', 'medium', 'hard'] if args.task == 'all' else [args.task]
+    for t in tasks:
+        run_experiment(args.episodes, t, pretrain_episodes=args.pretrain, output_dir=output_dir)
+    print(f"\n[DONE] Saved all runs to {output_dir}/")

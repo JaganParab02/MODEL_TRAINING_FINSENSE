@@ -30,7 +30,7 @@ class EventAgent:
                 event = {
                     "type": "fuel_crisis",
                     "intensity": intensity,
-                    "categories": ["transport"],
+                    "categories": ["transport", "food"],
                     "duration": max(2, int(self.total_days * 0.1)),
                     "day_triggered": day,
                 }

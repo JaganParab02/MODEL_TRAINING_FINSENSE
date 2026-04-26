@@ -1,8 +1,0 @@
-Collecting openenv
-  Downloading openenv-0.1.13-py3-none-any.whl.metadata (1.6 kB)
-Collecting numpy (from openenv)
-  Downloading numpy-2.4.4-cp311-cp311-win_amd64.whl.metadata (6.6 kB)
-Downloading openenv-0.1.13-py3-none-any.whl (12 kB)
-Downloading numpy-2.4.4-cp311-cp311-win_amd64.whl (12.6 MB)
-   ---------------------------------------- 12.6/12.6 MB 3.0 MB/s eta 0:00:00
-Installing collected packages: numpy, openenv

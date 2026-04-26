@@ -1,0 +1,34 @@
+{
+  "task": "medium",
+  "episodes": 10,
+  "baseline": {
+    "avg_reward": -3.414984405152455,
+    "avg_score": 0.4438342997870743,
+    "bad_decisions": 0.0,
+    "process_metrics": {
+      "protected_essential_count": 28.5,
+      "discretionary_avoids": 29.4,
+      "overspend_prevented": 48.0,
+      "emergency_safe_actions": 12.1,
+      "invalid_action_fallbacks": 0.0
+    }
+  },
+  "with_memory": {
+    "avg_reward": -3.3684689162252517,
+    "avg_score": 0.4578071152421794,
+    "bad_decisions": 0.0,
+    "process_metrics": {
+      "protected_essential_count": 27.2,
+      "discretionary_avoids": 30.9,
+      "overspend_prevented": 55.6,
+      "emergency_safe_actions": 9.9,
+      "invalid_action_fallbacks": 0.0
+    }
+  },
+  "improvement": {
+    "reward_delta": 0.046515488927203474,
+    "score_delta": 0.013972815455105092,
+    "bad_decisions_delta": 0.0
+  },
+  "memory_benefit": "positive"
+}

@@ -193,7 +193,7 @@ The SFT model trains live against `FinSenseEnv`, using `grade_episode()` as the 
 
 ### Plot 1: Memory vs. No Memory — Task: MEDIUM
 
-![FinSense RL Learning Evaluation — Task: MEDIUM](evaluation/finsense_memory_progression_medium.png)
+![FinSense RL Learning Evaluation — Task: MEDIUM](evaluation/WITH_WITHOUT_MEM.jpeg)
 
 *4-panel comparison across 10 episodes. **Top-left**: With Memory (green) consistently achieves higher total reward than Without Memory (red). **Bottom-right (Cumulative Reward)**: the green area stays clearly above red throughout — the memory-augmented agent accumulates less negative reward over time, confirming systematic improvement.*
 
@@ -203,7 +203,7 @@ The SFT model trains live against `FinSenseEnv`, using `grade_episode()` as the 
 
 ### Plot 2: Memory System Progression (Old vs. New) — Task: MEDIUM
 
-![FinSense Memory Progression — Task: MEDIUM](eval_medium_progression.png)
+![FinSense Memory Progression — Task: MEDIUM](evaluation/finsense_memory_progression_medium.png)
 
 *Comparing two generations of memory: Old memory (grey) vs. New, more refined memory (blue). **Graded Score (bottom-left)**: New memory achieves higher scores in 7 of 10 episodes. **Cumulative Reward (bottom-right)**: the blue area stays above grey, demonstrating that a richer, more experience-dense memory database leads to measurably better decisions.*
 
@@ -213,7 +213,7 @@ The SFT model trains live against `FinSenseEnv`, using `grade_episode()` as the 
 
 ### Plot 3: Trained (FinSense) vs. Base (Untrained) Model
 
-![Task Score Comparison — Trained vs. Base](eval_trained_vs_base.png)
+![Task Score Comparison — Trained vs. Base](evaluation/model_comparison_graphs.png)
 
 *Direct head-to-head across 5 episodes. **Left (Task Score)**: Trained model (green) scores 2–8× higher than the untrained base (red) on every single episode, with a clear upward trend. **Right (RL Reward)**: Trained model consistently achieves less negative cumulative reward, with the gap widening by episode 5.*
 

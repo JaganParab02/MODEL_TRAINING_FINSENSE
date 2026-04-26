@@ -12,7 +12,7 @@ MANDATORY
 - Defaults are set only for API_BASE_URL and MODEL_NAME 
     (and should reflect your active inference setup):
     API_BASE_URL = os.getenv("API_BASE_URL", "https://api-inference.huggingface.co/v1/")
-    MODEL_NAME = os.getenv("MODEL_NAME", "mistral:latest")
+    MODEL_NAME = os.getenv("MODEL_NAME","Qwen/Qwen2.5-7B-Instruct")
     
 - The inference script must be named `inference.py` and placed in the root directory of the project
 - Participants must use OpenAI Client for all LLM calls using above variables
@@ -64,7 +64,7 @@ def load_config():
     return {
         "HF_TOKEN": os.getenv("HF_TOKEN", ""),
         "API_BASE_URL": os.getenv("API_BASE_URL", "https://api-inference.huggingface.co/v1/"),
-        "MODEL_NAME": os.getenv("MODEL_NAME", "mistral"),
+        "MODEL_NAME": os.getenv("MODEL_NAME", "Qwen/Qwen2.5-7B-Instruct"),
         "USE_MEMORY": os.getenv("USE_MEMORY", "1") == "1",
         "USE_ASSISTANT": os.getenv("USE_ASSISTANT", "1") == "1",
         "FORCE_RULE_BASED": os.getenv("FORCE_RULE_BASED", "0") == "1",

@@ -24,7 +24,7 @@ def _get_client():
 
 
 def _get_model():
-    return os.getenv("MODEL_NAME", "mistral")
+    return os.getenv("MODEL_NAME", "Qwen/Qwen2.5-7B-Instruct")
 
 
 SYSTEM_PROMPT = """
